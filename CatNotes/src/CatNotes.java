@@ -126,13 +126,27 @@ class horario {
     public void insertarDia(Dia nuevoDia) {
         if (cabeza == null) {
             cabeza = nuevoDia;
-        } else {
-            Dia actual = cabeza;
-            while (actual.siguiente != null) {
-                actual = actual.siguiente;
-            }
-            actual.siguiente = nuevoDia;
+            return;
         }
+        Dia actual = cabeza;
+        while (actual.siguiente != null) {
+            actual = actual.siguiente;
+        }
+        actual.siguiente = nuevoDia;
+
+    }
+    public boolean BuscarDia(String DiaBuscado){
+        if (cabeza==null){
+            return true;
+        }
+        Dia actual=cabeza;
+        while (actual!=null){
+            if(actual.nombreDia.equals(DiaBuscado)) {
+                return false;
+            }
+            actual=actual.siguiente;
+        }
+        return true;
     }
     public void mostrarHorario() {
         Dia actual = cabeza;
@@ -202,7 +216,7 @@ class horario {
 public class CatNotes {
     static ArbolUsuarios arbol = new ArbolUsuarios();
     static Scanner sc = new Scanner(System.in);
-    static String[] DiasDeLaSemana = {"Lunes", "Marte", "Miercoles", "Jueves", "Viernes"};
+    static String[] DiasDeLaSemana = {"lunes", "marte", "miercoles", "jueves", "viernes"};
 
     public static void main(String[] args) {
         // Usuarios de prueba
@@ -218,7 +232,7 @@ public class CatNotes {
         juan.colaPrioridad.add(new TareaPrioridad("Urgente A", 1));
         juan.colaPrioridad.add(new TareaPrioridad("Normal B", 5));
         juan.colaPrioridad.add(new TareaPrioridad("Importante C", 3));
-        juan.Horario.insertarDia(new Dia("Lunes", "Matemáticas", "Programación", "Libre", "Física", "Inglés"));
+        juan.Horario.insertarDia(new Dia("lunes", "Matemáticas", "Programación", "Libre", "Física", "Inglés"));
 
 
         Usuario maria = arbol.buscar("maria@poligran.edu.co", "abcd");
@@ -234,7 +248,12 @@ public class CatNotes {
         ana.cola.add("Entrega Proyecto");
         ana.colaPrioridad.add(new TareaPrioridad("Examen Extra", 4));
         ana.colaPrioridad.add(new TareaPrioridad("Estudio Libre", 1));
+        // MENU LOGIN
+        menulogin();
 
+    }
+
+    static void menulogin(){
         int op;
         do {
             System.out.println("\n CAT NOTES ");
@@ -247,10 +266,13 @@ public class CatNotes {
             switch (op) {
                 case 1:
                     registrarUsuario();
+                    break;
                 case 2:
                     iniciarSesion();
+                    break;
                 case 3:
                     System.out.println("Gracias por usar Cat Notes, Vuelva pronto");
+                    break;
             }
         } while (op != 3);
     }
@@ -303,7 +325,8 @@ public class CatNotes {
                     case 5 -> checkTarea(u);
                     case 6 -> verHistorial(u);
                     case 7 -> modificarHorario(u);
-                    case 8 -> System.out.println("Cerrando sesión...");
+                    case 8 -> modificarClaseDia(u);
+                    case 9 -> System.out.println("Cerrando sesión...");
                     default -> System.out.println("Opción inválida");
                 }
             } while (mov != 8);
@@ -321,22 +344,27 @@ public class CatNotes {
             return;
         }
         String dia = DiasDeLaSemana[diaIndex];
-        System.out.println("Ingresando clases para " + dia);
-        String[] clases = new String[5];
-        String[] horas = {"7:00", "8:50", "10:40", "12:30", "14:20"};
-        for (int i = 0; i < 5; i++) {
-            System.out.print("¿Tienes clase a las " + horas[i] + "? (si/no): ");
-            String tieneClase = sc.nextLine();
-            if (tieneClase.equalsIgnoreCase("si")) {
-                System.out.print("Nombre de la clase: ");
-                clases[i] = sc.nextLine();
-            } else {
-                clases[i] = "Hueco";
+
+        if (u.Horario.BuscarDia(dia)){
+            System.out.println("Ingresando clases para " + dia);
+            String[] clases = new String[5];
+            String[] horas = {"7:00", "8:50", "10:40", "12:30", "14:20"};
+            for (int i = 0; i < 5; i++) {
+                System.out.print("¿Tienes clase a las " + horas[i] + "? (si/no): ");
+                String tieneClase = sc.nextLine();
+                if (tieneClase.equalsIgnoreCase("si")) {
+                    System.out.print("Nombre de la clase: ");
+                    clases[i] = sc.nextLine();
+                } else {
+                    clases[i] = "Hueco";
+                }
             }
+            Dia nuevoDia = new Dia(dia, clases[0], clases[1], clases[2], clases[3], clases[4]);
+            u.Horario.insertarDia(nuevoDia);
+            System.out.println("Horario ingresado exitosamente.");
+            return;
         }
-        Dia nuevoDia = new Dia(dia, clases[0], clases[1], clases[2], clases[3], clases[4]);
-        u.Horario.insertarDia(nuevoDia);
-        System.out.println("Horario ingresado exitosamente.");
+        System.out.println("El Dia a ingresar ya esta Dentro del horario, elija la opción de 'modificar horario' si desea hacer algun cambio");
     }
 
     static void ingresarTarea(Usuario u) {
@@ -387,7 +415,7 @@ public class CatNotes {
 
     static void modificarHorario(Usuario u) {
         System.out.print("Día a modificar: ");
-        String dia = sc.nextLine();
+        String dia = sc.nextLine().toLowerCase();
         String[] clases = new String[5];
         String[] horas = {"7:00", "8:50", "10:40", "12:30", "14:20"};
         for (int i = 0; i < 5; i++) {
@@ -403,4 +431,15 @@ public class CatNotes {
         Dia nuevoDia = new Dia(dia, clases[0], clases[1], clases[2], clases[3], clases[4]);
         u.Horario.reemplazarDia(dia, nuevoDia);
     }
+
+    static void modificarClaseDia(Usuario u){
+        System.out.println("Ingrese el dia que desea modificar: ");
+        String diaBuscado = sc.nextLine().toLowerCase();
+        System.out.println("Ingrese la hora que desea modificar: ");
+        String hora = sc.nextLine();
+        System.out.println("Ingrese la nueva clase: ");
+        String nuevaClase = sc.nextLine();
+        u.Horario.editarClase(diaBuscado, hora, nuevaClase);
+    }
+
 }
