@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.border.EmptyBorder;
+import java.net.URL;
 
 
 class Usuario {
@@ -245,7 +246,7 @@ public class CatNotesSwing extends JFrame {
 
     public CatNotesSwing() {
         // Usuarios de prueba
-        arbol.insertar("juan@poligran.edu.co", "1234", "Juan Pérez", "ING.sistemas");
+        arbol.insertar("juan@poligran.edu.co", "1234", "Juan Pérez", "ingenieria de sistemas");
         arbol.insertar("maria@poligran.edu.co", "abcd", "Maria Gómez", "Diseño de modas");
         arbol.insertar("ana@poligran.edu.co", "pass", "Ana Torres", "Contaduria");
 
@@ -281,8 +282,9 @@ public class CatNotesSwing extends JFrame {
 
         setTitle("Cat Notes");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400);
+        setSize(800, 600);
         setLocationRelativeTo(null);
+
 
         loginPanel = createLoginPanel();
         registerPanel = createRegisterPanel();
@@ -301,19 +303,26 @@ public class CatNotesSwing extends JFrame {
         mainPanel.add(historialPanel, "historial");
         mainPanel.add(modificarHorarioPanel, "modificarHorario");
         mainPanel.add(modificarClasePanel, "modificarClase");
-
+        ImageIcon iconoVentana = new ImageIcon(getClass().getClassLoader().getResource("recursos/unnamed.png"));
+        setIconImage(iconoVentana.getImage());
         add(mainPanel);
         cardLayout.show(mainPanel, "login");
         setVisible(true);
+
     }
 
     private JPanel createLoginPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(new Color(16, 56, 90));
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        inputPanel.setBackground(new Color(16, 56, 90));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(new Color(16, 56, 90));
         JLabel correoLabel = new JLabel("Correo:");
+        correoLabel.setForeground(Color.WHITE);
         loginCorreoField = new JTextField();
         JLabel passwordLabel = new JLabel("Contraseña:");
+        passwordLabel.setForeground(Color.WHITE);
         loginPasswordField = new JPasswordField();
         JButton loginButton = new JButton("Iniciar sesión");
         JButton registerButton = new JButton("Registrarse");
@@ -322,9 +331,20 @@ public class CatNotesSwing extends JFrame {
         inputPanel.add(loginCorreoField);
         inputPanel.add(passwordLabel);
         inputPanel.add(loginPasswordField);
-
         buttonPanel.add(loginButton);
         buttonPanel.add(registerButton);
+
+        // IMAGEN
+        URL imageUrl = getClass().getClassLoader().getResource("recursos/unnamed.png");
+        if (imageUrl == null) {
+            System.out.println("No se encontró la imagen");
+        } else {
+            ImageIcon icono = new ImageIcon(imageUrl);
+            Image imagenEscalada = icono.getImage().getScaledInstance(400, 400, Image.SCALE_SMOOTH);
+            JLabel imagenLabel = new JLabel(new ImageIcon(imagenEscalada));
+            imagenLabel.setHorizontalAlignment(JLabel.CENTER);
+            panel.add(imagenLabel, BorderLayout.CENTER);
+        }
 
         loginButton.addActionListener(new ActionListener() {
             @Override
@@ -332,6 +352,7 @@ public class CatNotesSwing extends JFrame {
                 String correo = loginCorreoField.getText();
                 String password = new String(loginPasswordField.getPassword());
                 usuarioActual = arbol.buscar(correo, password);
+
                 if (usuarioActual != null) {
                     usuarioNombreLabel.setText("Hola, " + usuarioActual.nombre);
                     usuarioCorreoLabel.setText("Correo: " + usuarioActual.correo);
@@ -355,21 +376,29 @@ public class CatNotesSwing extends JFrame {
 
         panel.add(inputPanel, BorderLayout.NORTH);
         panel.add(buttonPanel, BorderLayout.SOUTH);
+
+
         return panel;
     }
 
     private JPanel createRegisterPanel() {
         JPanel panel = new JPanel(new GridLayout(5, 2, 10, 10));
         JLabel correoLabel = new JLabel("Correo (@poligran.edu.co):");
+        correoLabel.setForeground(Color.WHITE);
         registerCorreoField = new JTextField();
         JLabel passwordLabel = new JLabel("Contraseña:");
+        passwordLabel.setForeground(Color.WHITE);
         registerPasswordField = new JPasswordField();
         JLabel nombreLabel = new JLabel("Nombre:");
+        nombreLabel.setForeground(Color.WHITE);
         registerNombreField = new JTextField();
         JLabel carreraLabel = new JLabel("Carrera:");
+        carreraLabel.setForeground(Color.WHITE);
         registerCarreraField = new JTextField();
         JButton registerButton = new JButton("Registrar");
         JButton backButton = new JButton("Volver");
+
+        panel.setBackground(new Color(16, 56, 90));
 
         registerButton.addActionListener(new ActionListener() {
             @Override
@@ -623,66 +652,82 @@ public class CatNotesSwing extends JFrame {
     }
 
     private void mostrarIngresarHorarioPanel() {
-        if (usuarioActual == null) {
-            JOptionPane.showMessageDialog(this, "Debes iniciar sesión primero.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        JPanel panel = new JPanel(new GridLayout(6, 2, 10, 10));
+        JFrame frame = new JFrame("Ingresar Horario");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setLayout(new BorderLayout(10, 10));
+
+        // Panel principal con GridBagLayout
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Fila para el comboBox del día
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        formPanel.add(new JLabel("Seleccionar día:"), gbc);
+
         JComboBox<String> diaComboBox = new JComboBox<>(DiasDeLaSemana);
+        gbc.gridx = 1;
+        formPanel.add(diaComboBox, gbc);
+
+        // Campos para las clases
         JTextField[] clasesFields = new JTextField[5];
         String[] horas = {"7:00", "8:50", "10:40", "12:30", "14:20"};
         for (int i = 0; i < 5; i++) {
-            panel.add(new JLabel("Clase " + horas[i] + ":"));
+            gbc.gridy = i + 1;
+            gbc.gridx = 0;
+            formPanel.add(new JLabel("Clase " + horas[i] + ":"), gbc);
+
             clasesFields[i] = new JTextField();
-            panel.add(clasesFields[i]);
+            gbc.gridx = 1;
+            formPanel.add(clasesFields[i], gbc);
         }
+
+        // Panel de botones abajo
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton guardarButton = new JButton("Guardar Horario");
         JButton cancelarButton = new JButton("Cancelar");
+        buttonPanel.add(guardarButton);
+        buttonPanel.add(cancelarButton);
 
-        guardarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String diaSeleccionado = (String) diaComboBox.getSelectedItem();
-                if (usuarioActual.Horario.BuscarDia(diaSeleccionado.toLowerCase())) {
-                    String[] clases = new String[5];
-                    for (int i = 0; i < 5; i++) {
-                        clases[i] = clasesFields[i].getText().isEmpty() ? "Hueco" : clasesFields[i].getText();
-                    }
-                    Dia nuevoDia = new Dia(diaSeleccionado.toLowerCase(), clases[0], clases[1], clases[2], clases[3], clases[4]);
-                    usuarioActual.Horario.insertarDia(nuevoDia);
-                    JOptionPane.showMessageDialog(CatNotesSwing.this, "Horario ingresado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    cardLayout.show(mainPanel, "menu");
-                } else {
-                    JOptionPane.showMessageDialog(CatNotesSwing.this, "El día ya existe en el horario.", "Error", JOptionPane.ERROR_MESSAGE);
+        // Agregar listeners
+        guardarButton.addActionListener(e -> {
+            String diaSeleccionado = (String) diaComboBox.getSelectedItem();
+            if (usuarioActual.Horario.BuscarDia(diaSeleccionado.toLowerCase())) {
+                String[] clases = new String[5];
+                for (int i = 0; i < 5; i++) {
+                    clases[i] = clasesFields[i].getText().isEmpty() ? "Hueco" : clasesFields[i].getText();
                 }
-            }
-        });
-
-        cancelarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+                Dia nuevoDia = new Dia(diaSeleccionado.toLowerCase(), clases[0], clases[1], clases[2], clases[3], clases[4]);
+                usuarioActual.Horario.insertarDia(nuevoDia);
+                JOptionPane.showMessageDialog(CatNotesSwing.this, "Horario ingresado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 cardLayout.show(mainPanel, "menu");
+
+            } else {
+                JOptionPane.showMessageDialog(CatNotesSwing.this, "El día ya existe en el horario.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        JFrame frame = new JFrame("Ingresar Horario");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
-        panel.add(new JLabel("Seleccionar día:"));
-        panel.add(diaComboBox);
-        panel.add(guardarButton);
-        panel.add(cancelarButton);
-        frame.add(panel, BorderLayout.CENTER);
-        frame.setSize(300, 300);
+        cancelarButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "menu");
+            frame.dispose();
+        });
+
+        frame.add(formPanel, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+        frame.pack();
         frame.setLocationRelativeTo(this);
         frame.setVisible(true);
     }
+
 
     private void mostrarIngresarTareaPanel() {
         if (usuarioActual == null) {
             JOptionPane.showMessageDialog(this, "Debes iniciar sesión primero.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        JFrame frame = new JFrame("Ingresar Tarea");
         JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
         JTextField tareaField = new JTextField();
         SpinnerModel model = new SpinnerNumberModel(1, 1, 10, 1);
@@ -703,11 +748,9 @@ public class CatNotesSwing extends JFrame {
             }
         });
 
-        cancelarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardLayout.show(mainPanel, "menu");
-            }
+        cancelarButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "menu");
+            frame.dispose();
         });
 
         panel.add(new JLabel("Nombre de la tarea:"));
@@ -717,7 +760,6 @@ public class CatNotesSwing extends JFrame {
         panel.add(guardarButton);
         panel.add(cancelarButton);
 
-        JFrame frame = new JFrame("Ingresar Tarea");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setLayout(new BorderLayout());
         frame.add(panel, BorderLayout.CENTER);
